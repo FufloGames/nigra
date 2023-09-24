@@ -1,0 +1,464 @@
+using System;
+using System.Collections.Generic;
+
+namespace ConsoleGame
+{
+    class Program
+    {
+        // Параметры для Игрока 1
+            static int player1Health = 100;    // Здоровье игрока 1
+            static bool player1HeadDefence = false;
+            static bool player1BodyDefence = false;
+            static bool player1LegDefence = false;
+            static int zaradka = 1;
+            static int tek_zarad = 0;
+            
+            // Параметры для Игрока 2
+            static int player2Health = 100;    // Здоровье игрока 2
+            static bool player2HeadDefence = false;
+            static bool player2BodyDefence = false;
+            static bool player2LegDefence = false;
+            static int zaradka2 = 1;
+            static int tek_zarad2 = 0;
+            
+            static int[] player1Inventory = new int[7]; // Инвентарь игрока 1 (7 слотов)
+            
+
+            static int[] player2Inventory = new int[7]; // Инвентарь игрока 2 (7 слотов)
+            
+
+
+            
+        static void Main(string[] args)
+        {
+            for (int i = 0; i < player1Inventory.Length; i++)
+            {
+                player1Inventory[i] = 0; // Изначально все слоты пустые (0 обозначает отсутствие предмета)
+            }
+            
+            for (int i = 0; i < player2Inventory.Length; i++)
+            {
+                player2Inventory[i] = 0; // Изначально все слоты пустые
+            }
+            Play();
+        }
+        
+        static void Play()
+        {
+            Magazin(player1Inventory, 1);
+            Console.Clear();
+            Magazin(player2Inventory, 2);
+            Console.Clear();
+            
+            while (player1Health > 0 && player2Health > 0)
+            {
+            Console.WriteLine("Ход игрока 1, выберите какой элемент тела защитить, 1 - голова, 2 - тело, 3 - ноги ");
+            string defense1_el = Console.ReadLine();
+            if (int.TryParse(defense1_el, out int intValue))
+            {
+            int defense = Convert.ToInt32(defense1_el);
+            Defense(1, defense);
+            Console.Clear();
+            }
+            
+            Console.WriteLine("Ход игрока 1, выберите какой элемент тела атаковать, 1 - голова, 2 - тело, 3 - ноги ");
+            string atak = Console.ReadLine();
+            if (int.TryParse(atak, out int intValue2))
+            {
+            int ataking_el = Convert.ToInt32(atak);
+            
+            int atak_count = 1;
+            zaradka = 1;
+            
+            Console.WriteLine("Текущее оружие " + player1Inventory[0]);
+            
+            if (player1Inventory[0] == 3)
+            {
+                atak_count = 3;
+                zaradka = 0;
+            }
+            
+            if (player1Inventory[0] == 4)
+            {
+                zaradka = 2;
+                Console.WriteLine("Замах...");
+            }
+            
+            if (tek_zarad < zaradka){
+                tek_zarad++;
+            }
+            
+            while (atak_count > 0 && tek_zarad == zaradka)
+            {
+            tek_zarad = 0;
+            int damage = CalculateDamage(1, ataking_el, player1Inventory, player2Inventory);
+            if (damage > 0)
+            {
+            Console.WriteLine("Игрок 1 атакует игрока 2 и наносит " + damage + " урона.");
+            player2Health = player2Health - damage;
+            Console.WriteLine("У игрока 2 осталось " + player2Health + " здоровья");
+            }
+            if (damage <= 0)
+            {
+            Console.WriteLine("Наша слоняра защитилась");
+            }
+            atak_count--;
+            }
+            }
+            
+            
+            
+            if (player2Health <= 0)
+            {
+                Pobeda(1);
+            }
+            if (player1Health <= 0)
+            {
+                Pobeda(2);
+            }
+            
+            
+            Console.WriteLine("Ход игрока 2, выберите какой элемент тела защитить, 1 - голова, 2 - тело, 3 - ноги ");
+            string defense2_el = Console.ReadLine();
+            if (int.TryParse(defense2_el, out int intValue3))
+            {
+            int defense = Convert.ToInt32(defense2_el);
+            Defense(2, defense);
+            Console.Clear();
+            }
+            
+            Console.WriteLine("Ход игрока 2, выберите какой элемент тела атаковать, 1 - голова, 2 - тело, 3 - ноги ");
+            string atak2 = Console.ReadLine();
+            if (int.TryParse(atak2, out int intValue4))
+            {
+            int ataking_el = Convert.ToInt32(atak);
+            
+            int atak_count = 1;
+            zaradka2 = 1;
+            
+            if (player2Inventory[0] == 3)
+            {
+                atak_count = 3;
+                zaradka2 = 0;
+            }
+            if (player2Inventory[0] == 4)
+            {
+                zaradka2 = 2;
+                Console.WriteLine("Замах...");
+            }
+            
+            if (tek_zarad2 < zaradka2){
+                tek_zarad2++;
+            }
+            
+            while (atak_count > 0 && tek_zarad2 == zaradka2)
+            {
+            tek_zarad2 = 0;    
+            int damage = CalculateDamage(2, ataking_el, player2Inventory, player1Inventory);
+            if (damage > 0)
+            {
+            Console.WriteLine("Игрок 2 атакует игрока 1 и наносит " + damage + " урона.");
+            player1Health = player1Health - damage;
+            Console.WriteLine("У игрока 1 осталось " + player2Health + " здоровья");
+            }
+            if (damage <= 0)
+            {
+            Console.WriteLine("Наша слоняра защитилась");
+            }
+            atak_count--;
+            }
+            }
+            
+            if (player2Health <= 0)
+            {
+                Pobeda(1);
+            }
+            if (player1Health <= 0)
+            {
+                Pobeda(2);
+            }
+            }
+        }
+        
+         static void ChangeInventoryItem(int[] inventory, int itemID)
+        {
+            if (itemID >= 0 && itemID <= 7)
+            {
+                // Предмет является оружием
+                inventory[0] = itemID;
+            }
+            else if (itemID >= 8 && itemID <= 11)
+            {
+                // Предмет является броней для головы
+                inventory[1] = itemID;
+            }
+            else if (itemID >= 12 && itemID <= 15)
+            {
+                // Предмет является броней для тела
+                inventory[2] = itemID;
+            }
+            else if (itemID >= 16 && itemID <= 19)
+            {
+                // Предмет является броней для ног
+                inventory[3] = itemID;
+            }
+            else if (itemID > 20)
+            {
+                // Предмет является аксессуаром
+                // Проверяем пятое, шестое и седьмое число массива на равенство нулю
+                if (inventory[4] == 0)
+                {
+                    inventory[4] = itemID;
+                }
+                else if (inventory[5] == 0)
+                {
+                    inventory[5] = itemID;
+                }
+                else if (inventory[6] == 0)
+                {
+                    inventory[6] = itemID;
+                }
+            }
+        }
+        
+        static int CalculateDamage(int attackingPlayer, int attackingBody,  int[] attackerInventory, int[] defenderInventory)
+        {
+            bool luck_atak = true;
+            int damage = 0;
+            if (attackingBody == 1)
+            {
+                if (attackingPlayer == 1)
+                {
+                    if (player2HeadDefence == true)
+                    {
+                    luck_atak = false;
+                    }
+                }
+                if (attackingPlayer == 2)
+                {
+                    if (player1HeadDefence == true)
+                    {
+                    luck_atak = false;
+                    }
+                }
+            }
+            if (attackingBody == 2)
+            {
+                if (attackingPlayer == 1)
+                {
+                    if (player2BodyDefence == true)
+                    {
+                    luck_atak = false;
+                    }
+                }
+                if (attackingPlayer == 2)
+                {
+                    if (player1BodyDefence == true)
+                    {
+                    luck_atak = false;
+                    }
+                }
+            }
+            if (attackingBody == 3)
+            {
+                if (attackingPlayer == 1)
+                {
+                    if (player2LegDefence == true)
+                    {
+                    luck_atak = false;
+                    }
+                }
+                if (attackingPlayer == 2)
+                {
+                    if (player1LegDefence == true)
+                    {
+                    luck_atak = false;
+                    }
+                }
+            }
+            
+            int knife = attackerInventory[0];
+            if (knife == 2)
+            {
+                luck_atak = true;
+            }
+            
+            if (luck_atak == true)
+            {
+                int weaponID = attackerInventory[0]; 
+                switch (weaponID)
+            {
+                case 1:
+                    return 24; // Меч
+                case 2:
+                    return 15; // Нож
+                case 3:
+                    return 9; // Чакрам
+                case 4:
+                    return 54; // Топор
+                case 5:
+                    return 17; // Бита
+                case 6:
+                    return 14; // Крисы
+                case 7:
+                    return 12; // Мачете
+                default:
+                    return 10; // Урон по умолчанию.
+            }
+            }
+
+            return damage;
+        }
+        
+        static void Defense (int defenderPlayer, int defenderBody)
+        {
+            if (defenderPlayer == 1)
+            {
+             player1HeadDefence = false;
+             player1BodyDefence = false;
+             player1LegDefence = false;
+             if (defenderBody == 1)
+             {
+                player1HeadDefence = true;
+             }
+             if (defenderBody == 2)
+             {
+                player1BodyDefence = true;
+             }
+             if (defenderBody == 3)
+             {
+                player1LegDefence = true;
+             }
+            }
+            if (defenderPlayer == 2)
+            {
+             player2HeadDefence = false;
+             player2BodyDefence = false;
+             player2LegDefence = false;
+             if (defenderBody == 1)
+             {
+                player2HeadDefence = true;
+             }
+             if (defenderBody == 2)
+             {
+                player2BodyDefence = true;
+             }
+             if (defenderBody == 3)
+             {
+                player2LegDefence = true; 
+             }
+            }
+        }
+        
+        static void Magazin(int[] inventory, int player)
+        {
+            Random random = new Random();
+            int Item1 = 0;
+            int Item2 = 0;
+            int Item3 = 0;
+            int Item4 = 0;
+            int Item5 = 0;
+            int ItemCount = 1;
+            Console.WriteLine("Ход игрока " + player + ", выберите какой предмет хотите взять");
+            while (ItemCount <= 5)
+            {
+            int randomItem = random.Next(1, 8);
+            if (randomItem == 1)
+            {
+                Console.WriteLine(ItemCount + " - Меч (Оружие, 24 атаки)");
+            }
+            if (randomItem == 2)
+            {
+                Console.WriteLine(ItemCount + " - Нож (Оружие, 15 атаки, игнорирует блок врага)");
+            }
+            if (randomItem == 3)
+            {
+                Console.WriteLine(ItemCount + " - Чакрам (Оружие, 9 атаки, бьет трижды)");
+            }
+            if (randomItem == 4)
+            {
+                Console.WriteLine(ItemCount + " - Топор (Оружие, 54 атаки, бьет каждый второй ход)");
+            }
+            if (randomItem == 5)
+            {
+                Console.WriteLine(ItemCount + " - Бита (Оружие, 17 атаки, удар по блоку врага отключит всю его броню на следующий ход)");
+            }
+            if (randomItem == 6)
+            {
+                Console.WriteLine(ItemCount + " - Крисы (Оружие, 14 атаки, получает +12 к урону каждый ход, удар в блок противника сбросит бонус)");
+            }
+            if (randomItem == 7)
+            {
+                Console.WriteLine(ItemCount + " - Мачете (Оружие, 12 атаки, бьет дважды, получение урона или попадание в блок врага дает +4 к урону, успешный удар сбросит бонус)");
+            }
+            if (ItemCount == 1)
+            {
+                Item1 = randomItem;
+            }
+            if (ItemCount == 2)
+            {
+                Item2 = randomItem;
+            }
+            if (ItemCount == 3)
+            {
+                Item3 = randomItem;
+            }
+            if (ItemCount == 4)
+            {
+                Item4 = randomItem;
+            }
+            if (ItemCount == 5)
+            {
+                Item5 = randomItem;
+            }
+            ItemCount++;
+            }
+            ItemCount = 1;
+            string sell = Console.ReadLine();
+            if (int.TryParse(sell, out int intValue5))
+            {
+            int Id = Convert.ToInt32(sell);
+            int Id_item = 0;
+            if (Id == 1)
+            {
+                Id_item = Item1;
+            }
+            if (Id_item == 2)
+            {
+                Id_item = Item2;
+            }
+            if (Id_item == 3)
+            {
+                Id_item = Item3;
+            }
+            if (Id_item == 4)
+            {
+                Id_item = Item4;
+            }
+            if (Id_item == 5)
+            {
+                Id_item = Item5;
+            }
+            ChangeInventoryItem(inventory, Id_item);
+        }
+        }
+        
+        static void Pobeda(int pobeda_player)
+        {
+            Console.Clear();
+            if (pobeda_player == 1)
+            {
+                 Console.WriteLine("Игрок один победил");
+            }
+            if (pobeda_player == 2)
+            {
+                Console.WriteLine("Игрок два победил");
+            }
+            player1Health = 100;
+            player2Health = 100;
+            Play();
+        }
+        
+    }
+}
+
